@@ -217,7 +217,6 @@ def open_port(port: str) -> serial.Serial:
 def readline_skip_echo(ser: serial.Serial) -> str:
     """
     Read a response line, skipping any '[console]' local-echo lines
-    (same logic as send_image.py).
     """
     raw      = ser.readline()
     response = raw.decode("ascii", errors="replace").strip()
