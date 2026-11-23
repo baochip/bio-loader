@@ -1,0 +1,63 @@
+
+name: Packaging smoke test
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  packaging:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python-version: ["3.11", "3.13"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Build wheel
+        run: |
+          python -m pip install build
+          python -m build --wheel
+
+      - name: Install and test CLI
+        shell: python
+        run: |
+          import glob
+          import os
+          import shutil
+          import subprocess
+          import sys
+          import tempfile
+          import zipfile
+
+          wheel, = glob.glob("dist/*.whl")
+
+          with zipfile.ZipFile(wheel) as zf:
+              assert "bio_loader.py" in zf.namelist()
+
+          subprocess.run(
+              [sys.executable, "-m", "pip", "install", wheel],
+              check=True,
+          )
+
+          with tempfile.TemporaryDirectory() as workdir:
+              subprocess.run(
+                  [sys.executable, "-c", "import bio_loader"],
+                  cwd=workdir,
+                  check=True,
+              )
+
+              cli = shutil.which("bio-loader")
+              assert cli is not None
+
+              subprocess.run(
+                  [cli, "--help"],
+                  cwd=workdir,
+                  check=True,
+              )

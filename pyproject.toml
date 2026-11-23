@@ -12,3 +12,9 @@ dependencies = [
 
 [project.scripts]
 bio-loader = "bio_loader:main"
+
+[tool.setuptools]
+py-modules = ["bio_loader"]
+
+[tool.setuptools.package-dir]
+"" = "bio-loader"
